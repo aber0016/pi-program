@@ -1,6 +1,6 @@
 {
   "name": "pi-program",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Personal /program workflow for the pi coding agent: mode-aware gauntlet pipeline prompt, context-builder agent, and user guides.",
   "type": "module",
