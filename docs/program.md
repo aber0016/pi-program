@@ -25,9 +25,11 @@ Force a mode by prefixing the request (`/program quick: ...` or `/program elabor
 | `npm:pi-gauntlet` | Provides the Gauntlet skill chain (brainstorming, planning, TDD implementation, reviews, verification, shipping) and the implementer, code-reviewer, spec-reviewer, spec-council, and conformance-reviewer agents. |
 | `npm:pi-subagents` | Provides the subagent runtime and the `scout` agent for local repository context. |
 | `~/.pi/agent/agents/context-builder.md` | Reads URLs and external references. Extracts requirements, constraints, contradictions, anomalies, and open questions, with per-reference provenance. Treats fetched content as untrusted data. |
+| `grill-with-docs` skill (optional, elaborate mode) | Interactive interview on the three to five highest-impact design decisions, run on the draft spec before the spec council critique. Records outcomes in the spec and in CONTEXT.md/ADRs, so the council treats them as settled constraints. Skipped when not installed. |
+| `antivibe` skill (optional, both modes) | Writes `walkthrough.md` into the run folder before shipping options are presented: a plain-language explanation of the architecture, the key decisions, and how the changes fit the existing code. Skipped when not installed. |
 | `git:github.com/aber0016/code_review_gate` | Runs the final layered test and review gate before a push or pull request (elaborate mode only). Installed tracking `main`; the elaborate preflight upgrades it to the latest commit on every run. |
 | `gauntlet_status` | Confirms that the final gate is green and applies to the current Git `HEAD`. |
-| `documentation/planning/<date>-<slug>/` | Per-run planning artifacts in the target repo: `brief.md` (yours), `context.md`, `spec.md`, `plan.md`. Committed to the feature branch, excluded from gate coverage. |
+| `documentation/planning/<date>-<slug>/` | Per-run planning artifacts in the target repo: `brief.md` (yours), `context.md`, `spec.md`, `plan.md`, and `walkthrough.md` (when `antivibe` is installed). Committed to the feature branch, excluded from gate coverage. |
 | `<worktree>/.pi/run/todo.md` | Per-run progress and verification evidence. Enables resume after interruption; keeps concurrent runs in different repos from clobbering each other. |
 | `~/.pi/agent/tasks/lessons.md` | Global, cross-project record of corrections and reusable workflow lessons. |
 
@@ -41,7 +43,9 @@ Choose mode (recommended by the agent, confirmed by you)
 → Scaffold documentation/planning/<date>-<slug>/brief.md, pre-filled — you complete the TODO(user) gaps
 → Scout gathers local context; context-builder reads external references → context.md
 → Create an isolated Git worktree (spec, plan, implementation, and review all happen there)
-→ Write spec.md → you approve (status: approved)
+→ Write spec.md
+→ grill-with-docs interviews you on the 3–5 biggest design decisions (when installed)
+→ Spec council critiques the rest → you approve spec.md (status: approved)
 → Write plan.md → you approve (or pre-authorize auto-chaining at spec approval)
 → Implement tasks with TDD
 → Review each task against the specification
@@ -49,6 +53,7 @@ Choose mode (recommended by the agent, confirmed by you)
 → Run project tests, lint, formatting, and type checks
 → Run a fresh origin-level conformance review
 → Require code_review_gate (/gate) and gauntlet_status on the same Git HEAD
+→ antivibe writes walkthrough.md (when installed)
 → Present shipping options
 ```
 
@@ -61,6 +66,7 @@ Choose mode → Preflight (git state only)
 → Implement tasks with smoke/happy-path tests
 → One combined code review of the whole diff
 → Run project tests, lint, formatting, and type checks
+→ antivibe writes walkthrough.md (when installed)
 → Present shipping options, labeled "quick mode — ungated, demo quality"
 ```
 
@@ -116,6 +122,8 @@ The workflow scaffolds `documentation/planning/<date>-<slug>/brief.md`, pre-fill
 
 ### 5. Approve the specification (and plan)
 
+In elaborate mode, when the `grill-with-docs` skill is installed, the workflow first interviews you — one question at a time — on the three to five decisions with the largest design impact (architecture, data model, public interfaces, security posture). Your answers land in the spec and in the project's CONTEXT.md/ADRs, and the automated spec council then critiques everything else against those settled decisions.
+
 The spec is presented as `spec.md`. Approve it or request changes. In elaborate mode, `plan.md` follows and needs a second approval — or pre-authorize auto-chaining when you approve the spec. In quick mode the merged spec approval is the only checkpoint; implementation then runs automatically.
 
 If a run is interrupted, starting `/program` again in the same repository offers to resume from the recorded run state instead of starting over.
@@ -151,7 +159,7 @@ If any actor or tool edits a file after evidence is recorded, that evidence is s
 
 ### 7. Choose how to ship
 
-After the mode's verification requirements pass, the workflow presents structured options such as:
+After the mode's verification requirements pass — and, when the `antivibe` skill is installed, after it writes `walkthrough.md` into the run folder so you can read what was actually built — the workflow presents structured options such as:
 
 - Squash and merge
 - Create a pull request

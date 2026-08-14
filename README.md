@@ -26,17 +26,19 @@ flowchart TD
     Q2 --> Q3["Build in worktree<br/>smoke tests"]
     Q3 --> Q4["One combined<br/>code review"]
     Q4 --> Q5["Canonical checks:<br/>tests, lint, format, types"]
-    Q5 --> Q6["Ship options<br/>label: ungated, demo quality"]
+    Q5 --> QW["walkthrough.md<br/>(antivibe, optional)"]
+    QW --> Q6["Ship options<br/>label: ungated, demo quality"]
 
     B -- elaborate --> E1["Preflight:<br/>Git + gauntlet CLI update<br/>(.gauntlet.toml draft if missing)"]
     E1 --> E2["brief.md<br/>you complete + approve"]
-    E2 --> E3["spec.md<br/>you approve"]
+    E2 --> E3["spec.md<br/>grill: top decisions (optional)<br/>+ spec council<br/>you approve"]
     E3 --> E4["plan.md<br/>you approve"]
     E4 --> E5["Build in worktree<br/>TDD per task"]
     E5 --> E6["Layered reviews:<br/>spec, quality,<br/>whole diff, conformance"]
     E6 --> E7["Canonical checks:<br/>tests, lint, format, types"]
     E7 --> E8["/gate + gauntlet_status<br/>green on current HEAD"]
-    E8 --> E9["Ship options"]
+    E8 --> EW["walkthrough.md<br/>(antivibe, optional)"]
+    EW --> E9["Ship options"]
 ```
 
 These are the two commands:
@@ -66,6 +68,7 @@ Use the quick mode for a demo, a test, an interview task, or a first version (MV
 Use the elaborate mode for production code and for code that other persons use.
 
 - You approve the brief, the specification, and the plan.
+- If the `grill-with-docs` skill is installed, the pipeline asks you about the three to five most important design decisions before the review agents examine the specification. Your answers go into the specification and the project documentation.
 - The pipeline writes tests before it writes code (TDD).
 - Many agents examine the code: one agent for each task, and one agent for the full result.
 - The pipeline runs the standard checks and the final gate (`/gate`).
@@ -91,6 +94,7 @@ documentation/planning/<date>-<name>/
 | `context.md` | The pipeline | Data from external links and tickets. |
 | `spec.md` | The pipeline | The full specification of the work. |
 | `plan.md` | The pipeline (elaborate mode only) | The list of build tasks. |
+| `walkthrough.md` | The pipeline (only if the `antivibe` skill is installed) | An explanation of the new code: the structure, the important decisions, and how the parts connect. |
 
 Each file has a `status` field at the top. The field has one of these values: `draft`, `ready-for-review`, or `approved`. The pipeline does not continue before the status is `approved`. You approve in two possible ways:
 
@@ -144,6 +148,8 @@ The pipeline then asks only about the items that are not clear.
 
 ### Step 4: Approve the specification
 
+In the elaborate mode, if the `grill-with-docs` skill is installed, the pipeline first asks you about the three to five most important design decisions. It asks one question at a time. Your answers go into the specification and the project documentation. The automatic review agents then examine the remaining points.
+
 1. Read `spec.md`.
 2. If it is correct, approve it.
 3. If it is not correct, tell the pipeline what to change.
@@ -183,6 +189,8 @@ For security work or a release:
 
 ### Step 8: Select how to ship
 
+If the `antivibe` skill is installed, the pipeline first writes `walkthrough.md` in the plan folder. This file explains the new code: the structure, the important decisions, and how the parts connect. Read it before you select an option.
+
 The pipeline shows these options:
 
 - Squash and merge
@@ -213,7 +221,8 @@ Make sure of these conditions:
 1. Pi is installed on the machine.
 2. The machine has GitHub SSH access. This repository is private.
 3. The packages `npm:pi-gauntlet` and `npm:pi-subagents` are installed. They supply the skill chain, the review agents, and the `scout` agent.
-4. For the elaborate mode only: each target project has the `gauntlet` tool as a development dependency. Install it with this command:
+4. Option: the skills `grill-with-docs` and `antivibe` are installed in `~/.agents/skills/`. The pipeline uses them if they are available. The pipeline also operates correctly without them.
+5. For the elaborate mode only: each target project has the `gauntlet` tool as a development dependency. Install it with this command:
 
 ```bash
 uv add --dev \
