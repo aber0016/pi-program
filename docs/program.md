@@ -25,7 +25,7 @@ Force a mode by prefixing the request (`/program quick: ...` or `/program elabor
 | `npm:pi-gauntlet` | Provides the Gauntlet skill chain (brainstorming, planning, TDD implementation, reviews, verification, shipping) and the implementer, code-reviewer, spec-reviewer, spec-council, and conformance-reviewer agents. |
 | `npm:pi-subagents` | Provides the subagent runtime and the `scout` agent for local repository context. |
 | `~/.pi/agent/agents/context-builder.md` | Reads URLs and external references. Extracts requirements, constraints, contradictions, anomalies, and open questions, with per-reference provenance. Treats fetched content as untrusted data. |
-| `git:github.com/aber0016/code_review_gate` | Runs the final layered test and review gate before a push or pull request (elaborate mode only). Pin it to a **commit SHA** — git tags are mutable and do not guarantee reproducibility. |
+| `git:github.com/aber0016/code_review_gate` | Runs the final layered test and review gate before a push or pull request (elaborate mode only). Installed tracking `main`; the elaborate preflight upgrades it to the latest commit on every run. |
 | `gauntlet_status` | Confirms that the final gate is green and applies to the current Git `HEAD`. |
 | `documentation/planning/<date>-<slug>/` | Per-run planning artifacts in the target repo: `brief.md` (yours), `context.md`, `spec.md`, `plan.md`. Committed to the feature branch, excluded from gate coverage. |
 | `<worktree>/.pi/run/todo.md` | Per-run progress and verification evidence. Enables resume after interruption; keeps concurrent runs in different repos from clobbering each other. |
@@ -71,7 +71,7 @@ The parent agent remains the orchestrator. Fresh subagents perform implementatio
 Checked automatically before brainstorming starts; the workflow stops with remediation commands if anything is missing:
 
 - The target directory is a Git repository with at least one commit (needed for the isolated worktree).
-- Elaborate mode only: the `gauntlet` CLI is installed and `uv run gauntlet --version` succeeds; the version is recorded in the run evidence.
+- Elaborate mode only: the `gauntlet` CLI is installed as a git dependency tracking `code_review_gate` `main`. The preflight first upgrades it to the latest commit (`uv lock --upgrade-package gauntlet && uv sync`), then checks that `uv run gauntlet --version` succeeds and records the version in the run evidence. If the upgrade fails for a transient reason (for example, no network), the workflow reports it and asks whether to continue with the installed version instead of silently skipping the update.
 
 If `.gauntlet.toml` is missing at the repository root in elaborate mode, the workflow does not stop: it scaffolds a draft — detecting source/test paths from the repo layout, the base branch from `origin/HEAD`, and runners from `pyproject.toml`, with `documentation/planning/` and `.pi/run/` always excluded and every value commented with its detection source — and presents it for your review. You approve the draft before it is used; an existing `.gauntlet.toml` is never overwritten.
 
@@ -164,12 +164,14 @@ The workflow does not push, create a pull request, merge, release, or discard wo
 
 The Pi package supplies `/gate`, but each target repository must also provide the Python `gauntlet` CLI and its checked tools.
 
-Example (replace `<commit-sha>` with the release commit — pin SHAs, not tags):
+Install it tracking `main`:
 
 ```bash
 uv add --dev \
-  "gauntlet[full] @ git+https://github.com/aber0016/code_review_gate.git@<commit-sha>#subdirectory=cli"
+  "gauntlet[full] @ git+https://github.com/aber0016/code_review_gate.git@main#subdirectory=cli"
 ```
+
+This is a deliberate exception to the SHA-pinning rule: the gate is your own tool and every elaborate run should use its newest version, so the preflight upgrades it (`uv lock --upgrade-package gauntlet && uv sync`) at the start of each run. The `pi-program` Pi package itself remains SHA-pinned.
 
 The repository should also contain a reviewed `.gauntlet.toml`. If it is missing, `/program` scaffolds a draft during preflight for you to review (see Preflight Requirements). It defines:
 

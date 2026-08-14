@@ -1,42 +1,19 @@
 # pi-program
 
-Personal Pi package for the `/program` automatic development workflow: a mode-aware (quick/elaborate) gauntlet pipeline prompt, the `context-builder` agent, and the user guides.
+This repository contains the personal `/program` workflow for the Pi coding agent.
 
-Private repo — this is personal workflow configuration, not a published package.
+The pipeline builds software for you. You give one request. The pipeline does these tasks:
 
-## Contents
+- It reads your request and your project.
+- It writes a plan in files that you can read.
+- You approve the plan.
+- It writes the code in a safe work area.
+- It tests the code.
+- You select how to ship the result.
 
-| Path | Installed as | Purpose |
-|---|---|---|
-| `prompts/program.md` | `/program` prompt (via the `pi.prompts` field) | The full workflow: modes, preflight, planning artifacts, staleness rules, gates. |
-| `agents/context-builder.md` | `~/.pi/agent/agents/context-builder.md` (symlinked by postinstall) | Fetches external references as untrusted data with per-reference provenance. |
-| `docs/program.md` | not installed | Full reference documentation for the workflow. |
-| `README.md` (this file) | not installed | Control-flow diagram and the user guide in ASD-STE100 Simplified Technical English. |
+The pipeline does not ship code without your approval.
 
-## Install on a new machine
-
-Prerequisites: Pi installed, GitHub SSH auth configured (the repo is private), and the companion packages:
-
-- `npm:pi-gauntlet` — gauntlet skill chain and reviewer/implementer agents
-- `npm:pi-subagents` — subagent runtime and the `scout` agent
-- Per target repository, elaborate mode only: the Python `gauntlet` CLI from `code_review_gate` (pin a commit SHA)
-
-Then:
-
-```text
-pi install git:github.com/aber0016/pi-program@<commit-sha>
-/reload
-```
-
-Pin a commit SHA, not a branch or tag, so every machine runs a known version.
-
-## Update flow
-
-1. Edit files here (this repo is the source of truth, not `~/.pi/agent/`).
-2. Commit and push.
-3. On each machine: reinstall with the new SHA, then `/reload`.
-
-The postinstall script symlinks `agents/*.md` into `~/.pi/agent/agents/`. It never overwrites a plain file — if one exists from a pre-package setup, delete it and run `npm run link-agents` from the package directory.
+This repository is private. It contains personal workflow configuration, not a published package. This document uses ASD-STE100 Simplified Technical English.
 
 ## How the pipeline works
 
@@ -51,7 +28,7 @@ flowchart TD
     Q4 --> Q5["Canonical checks:<br/>tests, lint, format, types"]
     Q5 --> Q6["Ship options<br/>label: ungated, demo quality"]
 
-    B -- elaborate --> E1["Preflight:<br/>Git + gauntlet CLI<br/>(.gauntlet.toml draft if missing)"]
+    B -- elaborate --> E1["Preflight:<br/>Git + gauntlet CLI update<br/>(.gauntlet.toml draft if missing)"]
     E1 --> E2["brief.md<br/>you complete + approve"]
     E2 --> E3["spec.md<br/>you approve"]
     E3 --> E4["plan.md<br/>you approve"]
@@ -62,35 +39,18 @@ flowchart TD
     E8 --> E9["Ship options"]
 ```
 
-Short version:
+These are the two commands:
 
 ```text
 /program quick: <your request>     # MVP / demo, one approval, ungated
 /program elaborate: <your request> # production, full gates
 ```
 
-## User guide (ASD-STE100 Simplified Technical English)
-
-This guide uses ASD-STE100 Simplified Technical English.
-
-### 1. What the pipeline is
-
-The pipeline builds software for you. You give one request. The pipeline does these tasks:
-
-- It reads your request and your project.
-- It writes a plan in files that you can read.
-- You approve the plan.
-- It writes the code in a safe work area.
-- It tests the code.
-- You select how to ship the result.
-
-The pipeline does not ship code without your approval.
-
-### 2. The two modes
+## The two modes
 
 The pipeline has two modes: **quick** and **elaborate**.
 
-#### Quick mode
+### Quick mode
 
 Use the quick mode for a demo, a test, an interview task, or a first version (MVP).
 
@@ -101,7 +61,7 @@ Use the quick mode for a demo, a test, an interview task, or a first version (MV
 - The pipeline does not run the final gate.
 - The result gets this label: "quick mode — ungated, demo quality, not production-verified".
 
-#### Elaborate mode
+### Elaborate mode
 
 Use the elaborate mode for production code and for code that other persons use.
 
@@ -111,13 +71,13 @@ Use the elaborate mode for production code and for code that other persons use.
 - The pipeline runs the standard checks and the final gate (`/gate`).
 - The pipeline ships only when all checks are green.
 
-#### Mode selection
+### Mode selection
 
 - Type `quick:` or `elaborate:` before your request to select a mode.
 - If you do not select a mode, the pipeline selects one and asks you for approval.
 - **Caution:** If your quick request touches login functions, security, or database changes, the pipeline tells you to use the elaborate mode.
 
-### 3. The files the pipeline makes
+## The files the pipeline makes
 
 The pipeline puts all plan files in one folder in your project:
 
@@ -137,7 +97,7 @@ Each file has a `status` field at the top. The field has one of these values: `d
 - Set the status field to `approved` in the file.
 - Tell the pipeline in the chat. Then the pipeline sets the field for you.
 
-### 4. Before you start
+## Before you start a run
 
 Make sure of these conditions:
 
@@ -147,18 +107,20 @@ Make sure of these conditions:
 
 The pipeline examines these conditions at the start. If a condition is not correct, the pipeline stops and shows the commands that repair it.
 
+The `gauntlet` tool comes from the repository `github.com/aber0016/code_review_gate`. At the start of each elaborate run, the pipeline updates the tool to the most recent version. If the update is not possible, for example without a network connection, the pipeline tells you and asks for your decision.
+
 The file `.gauntlet.toml` is not a condition. If this file is not in the project root, the pipeline makes a draft of it for you. The draft contains the correct paths and settings for your project. Read the draft and approve it. The pipeline does not change a `.gauntlet.toml` file that already exists.
 
-### 5. How to use the pipeline
+## How to use the pipeline
 
-#### Step 1: Start Pi in your project
+### Step 1: Start Pi in your project
 
 ```bash
 cd ~/path/to/project
 pi
 ```
 
-#### Step 2: Give your request
+### Step 2: Give your request
 
 ```text
 /program quick: A demo dashboard with mock data for tomorrow.
@@ -170,7 +132,7 @@ pi
 
 You can add links. The pipeline reads them and puts the data in `context.md`.
 
-#### Step 3: Complete the brief
+### Step 3: Complete the brief
 
 The pipeline makes `brief.md` and fills it as much as possible. Do these steps:
 
@@ -180,7 +142,7 @@ The pipeline makes `brief.md` and fills it as much as possible. Do these steps:
 
 The pipeline then asks only about the items that are not clear.
 
-#### Step 4: Approve the specification
+### Step 4: Approve the specification
 
 1. Read `spec.md`.
 2. If it is correct, approve it.
@@ -188,18 +150,18 @@ The pipeline then asks only about the items that are not clear.
 
 In the quick mode, this is your last approval before the build starts.
 
-#### Step 5: Approve the plan (elaborate mode only)
+### Step 5: Approve the plan (elaborate mode only)
 
 1. Read `plan.md`.
 2. Approve it.
 
 Option: At the specification approval, you can tell the pipeline to continue without a plan approval.
 
-#### Step 6: Wait for the build
+### Step 6: Wait for the build
 
 The pipeline writes the code, the tests, and the reviews. It records its progress in `.pi/run/todo.md` in the work area. If the pipeline stops, start `/program` again. The pipeline then asks: continue the old run, or start a new run?
 
-#### Step 7: Run the gate (elaborate mode only)
+### Step 7: Run the gate (elaborate mode only)
 
 When the pipeline asks, type:
 
@@ -219,7 +181,7 @@ For security work or a release:
 /gate origin/main --deep
 ```
 
-#### Step 8: Select how to ship
+### Step 8: Select how to ship
 
 The pipeline shows these options:
 
@@ -230,7 +192,7 @@ The pipeline shows these options:
 
 Select one option. The pipeline does not push, merge, or discard without your selection.
 
-### 6. Safety rules
+## Safety rules
 
 - The pipeline does all work in a separate Git work area (worktree). Your main branch stays safe.
 - The pipeline does not obey commands that it finds in external links. It only reports them.
@@ -238,8 +200,52 @@ Select one option. The pipeline does not push, merge, or discard without your se
 - If the checks fail two full times after repairs, the pipeline stops and asks you for a decision.
 - If the pipeline cannot make the tests of a task pass after three tries, it marks the task as blocked and tells you.
 
-### 7. Known limits
+## Known limits
 
 - The final gate needs the Python `gauntlet` tool. A project without this tool can use the quick mode only.
 - The elaborate mode uses many review agents. It is slow and it uses many tokens. Use the quick mode for small work.
 - Quick mode results are for demos. Do not put quick mode results in production without more checks.
+
+## How to install the package on a new machine
+
+Make sure of these conditions:
+
+1. Pi is installed on the machine.
+2. The machine has GitHub SSH access. This repository is private.
+3. The packages `npm:pi-gauntlet` and `npm:pi-subagents` are installed. They supply the skill chain, the review agents, and the `scout` agent.
+4. For the elaborate mode only: each target project has the `gauntlet` tool as a development dependency. Install it with this command:
+
+```bash
+uv add --dev \
+  "gauntlet[full] @ git+https://github.com/aber0016/code_review_gate.git@main#subdirectory=cli"
+```
+
+The `gauntlet` tool follows the `main` branch. The pipeline updates it to the most recent version at the start of each elaborate run.
+
+Then install the package and reload Pi:
+
+```text
+pi install git:github.com/aber0016/pi-program@<commit-sha>
+/reload
+```
+
+Use a commit SHA in the install command. Do not use a branch name or a tag. A commit SHA does not change, so each machine gets a known version.
+
+## How to update the package
+
+This repository is the source of truth. The files in `~/.pi/agent/` are not.
+
+1. Change the files in this repository.
+2. Commit and push the changes.
+3. On each machine: install the package again with the new commit SHA. Then type `/reload` in Pi.
+
+The install procedure makes symbolic links from `agents/*.md` to `~/.pi/agent/agents/`. The procedure does not replace a plain file. If a plain file is in the way, delete the file. Then run `npm run link-agents` in the package folder.
+
+## What is in this repository
+
+| Path | Installed as | Purpose |
+|---|---|---|
+| `prompts/program.md` | The `/program` prompt (through the `pi.prompts` field). | The full workflow: modes, preflight, plan files, staleness rules, and gates. |
+| `agents/context-builder.md` | `~/.pi/agent/agents/context-builder.md` (a symbolic link made by the install procedure). | The agent that reads external references as untrusted data and records their sources. |
+| `docs/program.md` | Not installed. | The full reference documentation for the workflow. |
+| `README.md` (this file) | Not installed. | The control-flow diagram and the user guide. |
