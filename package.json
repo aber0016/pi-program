@@ -1,0 +1,29 @@
+{
+  "name": "pi-program",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Personal /program workflow for the pi coding agent: mode-aware gauntlet pipeline prompt, context-builder agent, and user guides.",
+  "type": "module",
+  "keywords": [
+    "pi-package"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aber0016/pi-program.git"
+  },
+  "files": [
+    "prompts",
+    "agents",
+    "docs",
+    "bin"
+  ],
+  "pi": {
+    "prompts": [
+      "./prompts"
+    ]
+  },
+  "scripts": {
+    "postinstall": "node ./bin/install-agents.mjs",
+    "link-agents": "node ./bin/install-agents.mjs"
+  }
+}
